@@ -5,6 +5,7 @@ from time import timezone
 import bcrypt
 import jwt
 from pydantic import BaseModel
+from sqlalchemy.util import await_only
 
 from core.config import settings
 from core.models import Players
@@ -38,7 +39,7 @@ class AuthJWT:
         return jwt.decode(
             token=token,
             key=public_key,
-            algorithms=algorithm,
+            algorithms=[algorithm],
         )
 
     @staticmethod
@@ -47,33 +48,14 @@ class AuthJWT:
         pwd_bytes = password.encode("utf-8")
         return bcrypt.hashpw(pwd_bytes, salt)
 
-    @staticmethod
-    def validate_password(password: str, hash_password: str):
-
+    def validate_password(
+        password: str,
+        hashed_password: bytes,
+    ) -> bool:
         return bcrypt.checkpw(
-            password=password.encode("utf-8"),
-            hashed_password=hash_password.encode("utf-8"),
+            password=password.encode(),
+            hashed_password=hashed_password,
         )
-
-    def create_access_token(self, player: Players):
-        payload = {
-            "sub": player.username,
-            "username": player.username,
-            "password": player.password,
-            "token_type": "access",
-        }
-
-        return self.encode_jwt(payload=payload)
-
-    @staticmethod
-    def create_refresh_token(self, player: Players):
-        payload = {
-            "sub": player.username,
-            "username": player.username,
-            "password": player.password,
-            "token_type": "refresh",
-        }
-        return self.encode_jwt(payload=payload)
 
 
 helper_jwt = AuthJWT()

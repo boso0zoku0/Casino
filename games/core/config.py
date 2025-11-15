@@ -4,11 +4,12 @@ from pydantic_settings import BaseSettings
 from pydantic import BaseModel
 
 BASE_DIR = Path(__file__).parent.parent
+print(BASE_DIR)
 
 
 class AuthJWT(BaseModel):
-    private_key_path: Path = BASE_DIR / "core" / "auth" / "private_key.pem"
-    public_key_path: Path = BASE_DIR / "core" / "auth" / "public_key.pem"
+    private_key_path: Path = BASE_DIR / "core" / "auth" / "jwt-private.pem"
+    public_key_path: Path = BASE_DIR / "core" / "auth" / "jwt-public.pem"
     algorithm: str = "RS256"
     access_token_expire_minutes: int = 3
     refresh_token_expire_days: int = 30

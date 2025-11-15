@@ -3,12 +3,15 @@ from pydantic import BaseModel, ConfigDict, EmailStr
 
 class PlayersGet(BaseModel):
     model_config = ConfigDict(from_attributes=True)
+
     id: int
     username: str
     password: str
-    balance: int
-    email: EmailStr
-    years_active: int
+    balance: int | None = 0
+    email: EmailStr | None = None
+    years_active: int | None = 0
+    cookies: str | None = None
+    access_token: str | None = None
 
     def __str__(self):
         return f"Player(id={self.id}, username={self.username}, password='{self.password}', balance='{self.balance}' email='{self.email}')"
@@ -18,9 +21,7 @@ class PlayersPost(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     username: str
     password: str
-    balance: int
-    email: EmailStr
-    years_active: int
+    email: EmailStr | None = None
 
     def __str__(self):
         return f"Player(username={self.username}, password='{self.password}', balance='{self.balance}' email='{self.email}')"

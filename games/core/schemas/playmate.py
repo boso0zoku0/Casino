@@ -13,7 +13,6 @@ class PlaymateGet(BaseModel):
 
 class PlaymatePost(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id: int
     username: str
     bet: int
 

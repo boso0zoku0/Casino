@@ -17,7 +17,7 @@ dependencies = [
     "pyjwt[crypto]>=2.10.1",
     "bcrypt>=5.0.0",
     "pyopenssl>=25.3.0",
-    "openssl",
+    "cryptography>=46.0.3",
 ]
 
 [dependency-groups]

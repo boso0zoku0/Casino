@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Таймер и Рулетка</title>
+    <style>
+      .center-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 300px; /* Высота контейнера равна высоте окна */
+    width: 600px;
+    margin: 15%;
+    /*padding: 10%;*/
+    border-left: 50px;
+}
+    .last-winner {
+      margin-top: 5%;
+    }
+    </style>
+</head>
+<body>
+
+<!--<div class="last-winner">Победитель</div>-->
+
+<!--    &lt;!&ndash; Таймер &ndash;&gt;-->
+<!--    <div class="last-winner" id="timer">Следующая игра начнется через...</div>-->
+
+<!--    &lt;!&ndash; Форма для ставки &ndash;&gt;-->
+<!--    <form onsubmit="event.preventDefault(); submitBet();">-->
+<!--        <label for="bet-amount">Сумма ставки:</label><br/>-->
+<!--        <input type="number" id="bet-amount" placeholder="Ставка"><br/><br/>-->
+<!--        <button type="submit">Сделать ставку</button>-->
+<!--    </form>-->
+
+<!--    &lt;!&ndash; Контейнер для рулетки &ndash;&gt;-->
+<!--    <div class="roulette-container"></div>-->
+
+<!--    <p id="countdown-timer">4</p>-->
+<!--    <img class="center-container" id="waiting-image" src="https://s0.rbk.ru/v6_top_pics/media/img/9/47/756615209368479.webp" alt="Ожидание следующей игры"/> &lt;!&ndash; Замени your_image.jpg на ссылку своей картинки &ndash;&gt;-->
+
+<p>Ветеринарная клиника "Мокрый нос" работает с <span id="openTime">
+
+</span> до <span id="closeTime"></span> <span id="area"></span></p>
+
+  <p>Сейчас <span id="state"></span></p>
+  <p>До <span id="onoff"></span> осталось </p>
+  <div id="timerr" class="side"></div>
+
+
+
+<script>
+
+let timer = document.getElementById('timer');
+let state = document.getElementById('state');
+let onoff = document.getElementById('onoff');
+let openTime = document.getElementById('openTime');
+let closeTime = document.getElementById('closeTime');
+let area = document.getElementById('area');
+//Настройки расписания
+openTime.innerHTML = 8;//время открытия
+closeTime.innerHTML = 20;//время закрытия
+area.innerHTML = 'Мск';
+let localTime = 3;//разница между местным временем и UTC
+
+function countdown(){
+    let currentDate = new Date(), h = 0;
+    let currentTime = {
+        hour: currentDate.getUTCHours() + localTime,
+        min: currentDate.getMinutes(),
+        sec: currentDate.getSeconds()
+    };
+    if(currentTime.hour > 23) currentTime.hour -= 24;
+    if(currentTime.hour >= openTime.innerHTML && currentTime.hour < closeTime.innerHTML) {
+        state.innerHTML = 'открыто.';
+        onoff.innerHTML = 'закрытия';
+        h = closeTime.innerHTML - 1 - currentTime.hour;
+    }
+    else {
+        state.innerHTML = 'закрыто.';
+        onoff.innerHTML = 'открытия';
+        h = (currentTime.hour >= 0 && currentTime.hour < openTime.innerHTML) ? (openTime.innerHTML - 1 - currentTime.hour) : (23 - currentTime.hour + openTime.innerHTML) ;
+    }
+    let min = 60 - currentTime.min, sec = 60 - currentTime.sec;
+    if(min == 60) {min = 0; h++};
+    if(sec == 60) {sec = 0; min++};
+    if(min < 10) min = '0' + min;
+    if(sec < 10) sec = '0' + sec;
+    timer.innerHTML = h + ':' + min + ':' + sec;
+}
+setInterval(countdown, 1000);
+
+</script>
+
+
+
+
+
+
+</body>
+</html>
