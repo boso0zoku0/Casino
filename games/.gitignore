@@ -183,3 +183,4 @@ faststream/
 config.local.yaml
 jwt-private.pem
 jwt-public.pem
+alembic

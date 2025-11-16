@@ -1,17 +1,14 @@
 import random
 
 from fastapi import Depends, HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, insert, update, delete
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from starlette.requests import Request
 
 from core.models import db_helper, Players
 from core.models.playmate import Playmate
-
-
-async def fetch_user_by_action():
-    pass
 
 
 async def get_cookies_create_playmate(
@@ -24,10 +21,10 @@ async def get_cookies_create_playmate(
     result = await session.execute(stmt)
     players = result.scalars().first()
 
-    if players.username and players.password:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Username already exists"
-        )
+    # if players.username and players.password:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_409_CONFLICT, detail="Bet has already been placed"
+    #     )
     if cookies_get is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -37,6 +34,7 @@ async def get_cookies_create_playmate(
         username=str(players.username),
         password=str(players.password),
         bet=bet,
+        cookies=cookies_get,
     )
     session.add(new_playmate)
     await session.commit()
@@ -48,8 +46,10 @@ async def winner_choice(tickets: int):
 
 
 async def generate_tickets_roulette(
+    request: Request,
     session: AsyncSession = Depends(db_helper.session_dependency),
 ):
+    cookies_get = request.cookies.get("session_id")
 
     stmt_bets = select(Playmate.bet)
     execute_bets = await session.execute(stmt_bets)
@@ -61,7 +61,7 @@ async def generate_tickets_roulette(
     user_ids = execute_playmates.scalars().all()
 
     win = await winner_choice(sum_bets)
-    stmt = select(Playmate.username, Playmate.bet).order_by(Playmate.bet)
+    stmt = select(Playmate.username, Playmate.bet)
     res = await session.execute(stmt)
     users_bets = res.all()
 
@@ -71,9 +71,34 @@ async def generate_tickets_roulette(
 
     for playmate in users_bets:
         cumulative_bet += playmate[1]
+
+        # if playmate[1] >= cumulative_bet:
+        #     continue
+
         if cumulative_bet >= win:
             win_user = playmate[0]
             win_ticket = playmate[1]
-            return {f"Winner: {win_user} Bet: {win_ticket}"}
+            await session.execute(
+                update(Playmate)
+                .where(Playmate.username == win_user)
+                .values(bet=sum_bets)
+            )
+            await session.execute(
+                update(Playmate).where(Playmate.username != win_user).values(bet=0)
+            )
+            await session.commit()
+            other_players = users_bets[:]
+            await session.execute(delete(Playmate))
+            await session.commit()
+            return (
+                {
+                    "Winner": win_user,
+                    "Winning ticket": win,
+                    "All bets": sum_bets,
+                    "All Players": str(other_players),
+                },
+            )
 
+    # stmt = delete(Playmate)
+    # await session.execute(delete(Playmate))
     await session.commit()

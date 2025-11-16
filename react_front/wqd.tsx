@@ -1,6 +1,7 @@
 import React from "react";
 
 class ShoppingList extends React.Component<any, any> {
+  props: any;
   render() {
     return (
       <div className="shopping-list">

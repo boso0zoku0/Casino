@@ -7,7 +7,6 @@ from core.roulette.utils import get_cookies_create_playmate, generate_tickets_ro
 router = APIRouter(
     prefix="/roulette",
     tags=["Roulette"],
-    dependencies=[Depends(get_cookies_create_playmate)],
 )
 
 
@@ -26,6 +25,7 @@ async def game_join(
 
 @router.post("/winner")
 async def take_winner(
+    request: Request,
     session: AsyncSession = Depends(db_helper.session_dependency),
 ):
-    return await generate_tickets_roulette(session=session)
+    return await generate_tickets_roulette(session=session, request=request)
