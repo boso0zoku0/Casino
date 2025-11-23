@@ -9,5 +9,10 @@ app.include_router(auth_router)
 app.include_router(roulette_router)
 
 
+@app.get("/")
+async def hello(name: str):
+    return {"Hello": {name}}
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="localhost", port=8000)

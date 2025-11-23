@@ -8,12 +8,15 @@ from core.auth.utils import (
     generate_user_token,
     entry_user,
 )
-from core.roulette.utils import get_cookies_create_playmate, generate_tickets_roulette
+from core.roulette.utils import (
+    get_cookies_create_playmate,
+    generate_tickets_roulette,
+    get_users,
+)
 from core.models import Players, db_helper
 from core.models.playmate import Playmate
 
-from core.schemas import PlayersPost
-
+from core.schemas import PlayersPost, PlayersGet
 
 router = APIRouter(prefix="/auth", tags=["AuthJWT"])
 
@@ -28,8 +31,8 @@ async def primary_entry(
     session_id: str = Depends(generate_user_token),
 ):
 
-    player_payload = player.model_dump()
-    access_token = helper_jwt.encode_jwt(payload=player_payload)
+    payload = player.model_dump()
+    access_token = helper_jwt.encode_jwt(payload=payload)
 
     response.set_cookie(key="session_id", value=session_id)
     await entry_user(session=session, player=player)
@@ -69,3 +72,12 @@ async def entry(
         )
     )
     await session.commit()
+
+
+@router.post("/users-browsing/")
+async def users_browsing(
+    players_or_playmate: bool,
+    session: AsyncSession = Depends(db_helper.session_dependency),
+):
+
+    return await get_users(players_or_playmate=players_or_playmate, session=session)

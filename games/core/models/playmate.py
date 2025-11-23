@@ -1,3 +1,5 @@
+from typing import Any
+
 from sqlalchemy import Float, String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from core.models.base import Base
@@ -7,6 +9,7 @@ from sqlalchemy.dialects.postgresql import TIMESTAMP
 
 
 class Playmate(Base):
+
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(nullable=False, unique=True)
     password: Mapped[str] = mapped_column(ForeignKey("players.password"), unique=True)

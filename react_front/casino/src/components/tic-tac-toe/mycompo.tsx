@@ -2,24 +2,53 @@ import {type JSX, useState} from "react";
 
 
 export default function Game() {
-  const [squares, setSquares] = useState(Array(9).fill(null))
-  const [xIsNext, setXIsNext] = useState(true)
+  const [currentMove, setCurrentMove] = useState(0)
+  const [history, setHistory] = useState([Array(9).fill(null)]);
+  const currentSquares = history[currentMove];
+  const xIsNext = currentMove % 2 === 0;
+
+
+  function jumpTo(nextMove) {
+    setCurrentMove(nextMove)
+  }
+
+  const moves = history.map((squares, move) => {
+    let description;
+    if (move > 0) {
+      description = 'Step #' + move;
+    } else {
+      description = 'Go to game start';
+    }
+    return (
+      <li key={move}>
+        <button onClick={() => jumpTo(move)}>{description}</button>
+      </li>
+    );
+  });
+
+
+  function handlePlay(nextSquares) {
+    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+    setHistory(nextHistory);
+    setCurrentMove(nextHistory.length - 1);
+  }
+
+
   return (
     <div className="game">
       <div className="game-board">
-        <Board onPlay={...}/>
+        <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay}/>
       </div>
       <div className="game-info">
-        <ol>{/**/}</ol>
+        <ol>{moves}</ol>
       </div>
     </div>
   );
 }
 
 
-function Board(onPlay) {
-  const [squares, setSquares] = useState(Array(9).fill(null))
-  const [xIsNext, setXIsNext] = useState(true)
+function Board({xIsNext, squares, onPlay}) {
+
 
   function handleClick(i) {
 
@@ -30,13 +59,15 @@ function Board(onPlay) {
     const nextSquares = squares.slice();
     if (xIsNext) {
       nextSquares[i] = "X";
-      document.getElementById("win").innerText = "Следующий ход: X"
+      // @ts-ignore
+      document.getElementById("win").innerText = "Следующий ход: 0"
     } else {
       nextSquares[i] = "O";
-      document.getElementById("win").innerText = "Следующий ход: 0"
+      // @ts-ignore
+      document.getElementById("win").innerText = "Следующий ход: X"
     }
-    setSquares(nextSquares);
-    setXIsNext(!xIsNext);
+    onPlay(nextSquares)
+
     const winner = calculateWinner(nextSquares);
     if (winner) {
       console.log(`Победитель: ${winner}`);

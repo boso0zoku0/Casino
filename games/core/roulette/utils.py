@@ -2,13 +2,44 @@ import random
 
 from fastapi import Depends, HTTPException
 from sqlalchemy import select, insert, update, delete
-from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from starlette.requests import Request
 
 from core.models import db_helper, Players
 from core.models.playmate import Playmate
+
+
+async def get_users(
+    players_or_playmate: bool,
+    session: AsyncSession = Depends(db_helper.session_dependency),
+):
+    if players_or_playmate:
+        stmt = select(Players).order_by(Players.id)
+        res = await session.execute(stmt)
+        result = res.scalars().all()
+        return result
+
+    stmt = select(Playmate).order_by(Playmate.id)
+    res = await session.execute(stmt)
+    result = res.scalars().all()
+    return result
+
+
+async def get_randon_user(
+    players_or_playmate: bool,
+    session: AsyncSession = Depends(db_helper.session_dependency),
+):
+    if players_or_playmate:
+        stmt = select(Players).order_by(Players.id)
+        res = await session.execute(stmt)
+        result = res.scalars().all()
+        return result
+
+    stmt = select(Playmate).order_by(Playmate.id)
+    res = await session.execute(stmt)
+    result = res.scalars().all()
+    return result
 
 
 async def get_cookies_create_playmate(
