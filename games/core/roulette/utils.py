@@ -26,22 +26,6 @@ async def get_users(
     return result
 
 
-async def get_randon_user(
-    players_or_playmate: bool,
-    session: AsyncSession = Depends(db_helper.session_dependency),
-):
-    if players_or_playmate:
-        stmt = select(Players).order_by(Players.id)
-        res = await session.execute(stmt)
-        result = res.scalars().all()
-        return result
-
-    stmt = select(Playmate).order_by(Playmate.id)
-    res = await session.execute(stmt)
-    result = res.scalars().all()
-    return result
-
-
 async def get_cookies_create_playmate(
     request: Request,
     bet: int,
@@ -52,10 +36,6 @@ async def get_cookies_create_playmate(
     result = await session.execute(stmt)
     players = result.scalars().first()
 
-    # if players.username and players.password:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_409_CONFLICT, detail="Bet has already been placed"
-    #     )
     if cookies_get is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -69,7 +49,6 @@ async def get_cookies_create_playmate(
     )
     session.add(new_playmate)
     await session.commit()
-    return "ok"
 
 
 async def winner_choice(tickets: int):
@@ -97,34 +76,40 @@ async def generate_tickets_roulette(
     users_bets = res.all()
 
     cumulative_bet = 0
-    win_user = None
-    win_ticket = None
 
     for playmate in users_bets:
         cumulative_bet += playmate[1]
 
-        # if playmate[1] >= cumulative_bet:
-        #     continue
-
         if cumulative_bet >= win:
             win_user = playmate[0]
             win_ticket = playmate[1]
+
+            stmt = select(Playmate.bet).where(Playmate.username == win_user)
+            exec_stmt = await session.execute(stmt)
+            bet_winner = exec_stmt.scalars().first()
+
             await session.execute(
                 update(Playmate)
                 .where(Playmate.username == win_user)
                 .values(bet=sum_bets)
             )
+
             await session.execute(
                 update(Playmate).where(Playmate.username != win_user).values(bet=0)
             )
-            await session.commit()
+            # await session.commit()
+
             other_players = users_bets[:]
             await session.execute(delete(Playmate))
             await session.commit()
+
+            chance_win = round(((bet_winner / sum_bets) * 100), 2)
             return (
                 {
                     "Winner": win_user,
-                    "Winning ticket": win,
+                    "Winner tickets": bet_winner,
+                    "Chance": f"{chance_win} %",
+                    "Ticket win": win,
                     "All bets": sum_bets,
                     "All Players": str(other_players),
                 },

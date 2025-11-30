@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import TIMESTAMP
 class Players(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(nullable=False, unique=True)
-    password: Mapped[str] = mapped_column(nullable=False, unique=True)
+    password: Mapped[str] = mapped_column(nullable=False, unique=False)
     balance: Mapped[int] = mapped_column(default=0, nullable=True)
     email: Mapped[str] = mapped_column(nullable=True)
     years_active: Mapped[int] = mapped_column(default=0, nullable=True)

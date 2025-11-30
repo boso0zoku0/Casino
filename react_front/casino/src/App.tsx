@@ -1,7 +1,28 @@
 // @ts-ignore
 import type {JSX} from "react";
-import Signup from "./components/addingInteractivity/interactivity.tsx";
-import LightSwitch from "./components/addingInteractivity/interactivity.tsx";
+import TaskApp from "./components/ updating_array_in_state/examples.tsx";
+import ShoppingCart from "./components/ updating_array_in_state/examples.tsx";
+import List from "./components/ updating_array_in_state/examples.tsx";
+import Toolbar from "./components/addingInteractivity/interactivity.tsx";
+
+// import Signup from "./components/addingInteractivity/interactivity.tsx";
+// import ColorSwitch from "./components/addingInteractivity/interactivity.tsx";
+// import GalleryShow from "./components/addingInteractivity/interactivity.tsx";
+// import Form from "./components/addingInteractivity/interactivity.tsx";
+// import FeedbackForm from "./components/addingInteractivity/interactivity.tsx";
+// import Clock from "./components/addingInteractivity/interactivity.tsx";
+// import Counter from "./components/addingInteractivity/interactivity.tsx";
+// import FormHI from "./components/addingInteractivity/interactivity.tsx";
+// import TrafficLight from "./components/addingInteractivity/interactivity.tsx";
+// import RequestTracker from "./components/addingInteractivity/interactivity.tsx";
+// import FormODict from "./components/addingInteractivity/interactivity.tsx";
+// import FormDict from "./components/addingInteractivity/interactivity.tsx";
+// import Scoreboard from "./components/addingInteractivity/interactivity.tsx";
+// import List from "./components/ updating_array_in_state/examples.tsx";
+// import ShapeEditor from "./components/ updating_array_in_state/examples.tsx";
+// import CounterList from "./components/ updating_array_in_state/examples.tsx";
+// import ShoppingCart from "./components/ updating_array_in_state/examples.tsx";
+// import MyComponent from "./components/app/auth.tsx";
 // import AppInteractivity from "./components/addingInteractivity/interactivity.tsx";
 // import Game from "./components/tic-tac-toe/mycompo.tsx";
 // import Toolbar from "./components/addingInteractivity/interactivity.tsx";
@@ -21,24 +42,10 @@ import LightSwitch from "./components/addingInteractivity/interactivity.tsx";
 export default function MyApp() {
   return (
     <>
-      {/*<Game/>*/}
-      {/*<TakePictures/>*/}
-      {/*<Gallery/>*/}
-      {/*<TodoList/>*/}
-      {/*<ComponentTwo/>*/}
-      {/*<GalleryProfiles/>*/}
-      {/*<Item/>*/}
-      {/*<PeopleList/>*/}
-      {/*<RecipeList/>*/}
-      {/*<Poem/>*/}
-      {/*<TeaSet/>*/}
-      {/*<StoryTray stories={[{ id: 2, label: 'wd' }]} />*/}
-      {/*<StoryTray stories={[{ id: 3, label: 'qq' }]} />*/}
-      {/*<AppInteractivity/>*/}
-      {/*<Toolbar/>*/}
-      <LightSwitch/>
-
-
+      <TaskApp/>
+      <Toolbar/>
     </>
-  );
+  )
 }
+
+

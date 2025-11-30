@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import Form, HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordBearer
 from jwt import InvalidTokenError
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 

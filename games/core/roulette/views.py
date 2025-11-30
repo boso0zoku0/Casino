@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Response, Request, Depends
+from fastapi import APIRouter, Response, Request, Depends, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models import db_helper
@@ -14,13 +14,17 @@ router = APIRouter(
 async def game_join(
     request: Request,
     bet: int,
+    background_task: BackgroundTasks,
     session: AsyncSession = Depends(db_helper.session_dependency),
 ):
-    return await get_cookies_create_playmate(
+
+    task_add = await get_cookies_create_playmate(
         request=request,
         bet=bet,
         session=session,
     )
+    background_task.add_task(task_add)
+    return "You have joined the game"
 
 
 @router.post("/winner")

@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Response, Request, Depends
+from fastapi import APIRouter, Response, Request, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import update, select
-
 from core.auth.helper import helper_jwt
 from core.auth.utils import (
     validate_auth_user,
@@ -30,22 +30,28 @@ async def primary_entry(
     ),
     session_id: str = Depends(generate_user_token),
 ):
+    try:
+        payload = player.model_dump()
+        access_token = helper_jwt.encode_jwt(payload=payload)
 
-    payload = player.model_dump()
-    access_token = helper_jwt.encode_jwt(payload=payload)
-
-    response.set_cookie(key="session_id", value=session_id)
-    await entry_user(session=session, player=player)
-    await session.execute(
-        update(Players)
-        .where(Players.password == player.password)
-        .values(
-            cookies=session_id,
-            access_token=access_token,
+        response.set_cookie(key="session_id", value=session_id)
+        await entry_user(session=session, player=player)
+        await session.execute(
+            update(Players)
+            .where(Players.password == player.password)
+            .values(
+                cookies=session_id,
+                access_token=access_token,
+            )
         )
-    )
-    await session.commit()
-    return {"Hello": player.username}
+        await session.commit()
+        return f"Registration was successful: {player.username}"
+
+    except IntegrityError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Username already exists",
+        )
 
 
 @router.post("/login/")
@@ -72,6 +78,7 @@ async def entry(
         )
     )
     await session.commit()
+    return f"Authentication was successful: {player.username}"
 
 
 @router.post("/users-browsing/")

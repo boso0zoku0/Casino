@@ -12,7 +12,7 @@ class Playmate(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(nullable=False, unique=True)
-    password: Mapped[str] = mapped_column(ForeignKey("players.password"), unique=True)
+    password: Mapped[str] = mapped_column(nullable=False, unique=False)
     bet: Mapped[int]
     in_game: Mapped[bool] = mapped_column(default=False)
     cookies: Mapped[str] = mapped_column(nullable=True)
