@@ -1,4 +1,3 @@
-import {Fragment, useState} from 'react';
 
 // const peopleList = [
 //   'Креола Кэтрин Джонсон (Creola Katherine Johnson): математик',
@@ -211,21 +210,3 @@ export const recipes = [{
 
 // dz
 
-export default function StoryTray({ stories }) {
-  const [state, setState] = useState(false)
-  function handleClick() {
-    window.location.href = 'https://web.telegram.org/k/#@gigachat_bot'
-  }
-
-  return (
-    <ul>
-      {stories.map(story => (
-        <li key={story.id} onClick={() => setState(true)}>
-          Label-{story.label} ID-{story.id}
-        </li>
-      ))}
-      {state &&
-      <button type={"submit"} onClick={handleClick}>Create story</button>}
-    </ul>
-  );
-}
