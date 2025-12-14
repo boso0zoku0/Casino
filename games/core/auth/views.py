@@ -9,13 +9,9 @@ from core.auth.utils import (
     entry_user,
 )
 from core.roulette.utils import (
-    get_cookies_create_playmate,
-    generate_tickets_roulette,
     get_users,
 )
 from core.models import Players, db_helper
-from core.models.playmate import Playmate
-
 from core.schemas import PlayersPost, PlayersGet
 
 router = APIRouter(prefix="/auth", tags=["AuthJWT"])
@@ -34,7 +30,7 @@ async def primary_entry(
         payload = player.model_dump()
         access_token = helper_jwt.encode_jwt(payload=payload)
 
-        response.set_cookie(key="session_id", value=session_id)
+        response.set_cookie(key="session_id", value=session_id, expires=1000)
         await entry_user(session=session, player=player)
         await session.execute(
             update(Players)

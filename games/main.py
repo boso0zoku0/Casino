@@ -1,8 +1,11 @@
-from fastapi import FastAPI
+import logging
+
+from fastapi import FastAPI, Depends
 import uvicorn
 from starlette.middleware.cors import CORSMiddleware
 
 from core.auth.views import router as auth_router
+from core.config import settings
 from core.roulette.views import router as roulette_router
 
 origins = ["*"]
@@ -18,6 +21,12 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+logging.basicConfig(
+    format=settings.logging.log_format,
+    level=settings.logging.log_level_name,
+    datefmt=settings.logging.date_format,
 )
 
 

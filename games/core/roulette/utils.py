@@ -1,13 +1,17 @@
+import logging
 import random
 
 from fastapi import Depends, HTTPException
 from sqlalchemy import select, insert, update, delete
+from sqlalchemy.sql import func
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from starlette.requests import Request
 
 from core.models import db_helper, Players
 from core.models.playmate import Playmate
+
+log = logging.getLogger(__name__)
 
 
 async def get_users(
@@ -47,6 +51,7 @@ async def get_cookies_create_playmate(
         bet=bet,
         cookies=cookies_get,
     )
+    log.info(f"Joined playmate - %s; bet - %s", new_playmate.username, new_playmate.bet)
     session.add(new_playmate)
     await session.commit()
 
@@ -59,21 +64,25 @@ async def generate_tickets_roulette(
     request: Request,
     session: AsyncSession = Depends(db_helper.session_dependency),
 ):
-    cookies_get = request.cookies.get("session_id")
 
-    stmt_bets = select(Playmate.bet)
-    execute_bets = await session.execute(stmt_bets)
-    bets_list = execute_bets.scalars().all()
-    sum_bets = sum(bets_list)
-
-    stmt_playmates = select(Playmate.id)
-    execute_playmates = await session.execute(stmt_playmates)
-    user_ids = execute_playmates.scalars().all()
+    stmt = select(
+        Playmate.id, Playmate.username, func.sum(Playmate.bet).label("bet")
+    ).group_by(Playmate.id)
+    execute_stmt = await session.execute(stmt)
+    data_playmates = execute_stmt.fetchall()
+    sum_bets = sum([user.bet for user in data_playmates])
+    print(f"sum_bets: {sum_bets}")
 
     win = await winner_choice(sum_bets)
-    stmt = select(Playmate.username, Playmate.bet)
+
+    stmt = select(Playmate.username, func.sum(Playmate.bet).label("bet")).group_by(
+        Playmate.username
+    )
     res = await session.execute(stmt)
     users_bets = res.all()
+
+    if len(data_playmates) <= 1:
+        return "Wait for players to connect to your room"
 
     cumulative_bet = 0
 
@@ -82,11 +91,15 @@ async def generate_tickets_roulette(
 
         if cumulative_bet >= win:
             win_user = playmate[0]
-            win_ticket = playmate[1]
 
-            stmt = select(Playmate.bet).where(Playmate.username == win_user)
+            stmt = (
+                select(func.sum(Playmate.bet).label("bet"), Playmate.username)
+                .where(Playmate.username == win_user)
+                .group_by(Playmate.username)
+            )
             exec_stmt = await session.execute(stmt)
-            bet_winner = exec_stmt.scalars().first()
+            bet_winner = exec_stmt.scalars().all()
+            bet_win = bet_winner[0]
 
             await session.execute(
                 update(Playmate)
@@ -97,24 +110,37 @@ async def generate_tickets_roulette(
             await session.execute(
                 update(Playmate).where(Playmate.username != win_user).values(bet=0)
             )
-            # await session.commit()
 
             other_players = users_bets[:]
+            all_players = []
+
+            for user in other_players:
+                if user[0] not in all_players:
+                    all_players.append(user)
+
             await session.execute(delete(Playmate))
             await session.commit()
 
-            chance_win = round(((bet_winner / sum_bets) * 100), 2)
+            chance_win = round(((bet_win / sum_bets) * 100), 2)
             return (
                 {
                     "Winner": win_user,
-                    "Winner tickets": bet_winner,
+                    # "Winner tickets": bet_winner,  # отображается вся сумма победителя, задумка иная - выигрышный билет(эти данные вывожу в Ticket win возможно данное поле стоит уддалить из за не надобности
                     "Chance": f"{chance_win} %",
                     "Ticket win": win,
                     "All bets": sum_bets,
-                    "All Players": str(other_players),
+                    "All Players": str(all_players),
                 },
             )
 
-    # stmt = delete(Playmate)
-    # await session.execute(delete(Playmate))
     await session.commit()
+
+    # except IndexError:
+    #
+    #     return "Wait for players to connect to your room"
+
+
+# на данный момент подозрение что победитель рассчитывается наоборот. в ставке где первый поставил 500 и второй 300
+# выигрышный билет 200 это билет второго участника(тоесть с конца). правильно будет победителем выбрать первого т.к его 500 билетов первые
+
+#

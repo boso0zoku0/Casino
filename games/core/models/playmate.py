@@ -11,7 +11,7 @@ from sqlalchemy.dialects.postgresql import TIMESTAMP
 class Playmate(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    username: Mapped[str] = mapped_column(nullable=False, unique=True)
+    username: Mapped[str] = mapped_column(nullable=False, unique=False)
     password: Mapped[str] = mapped_column(nullable=False, unique=False)
     bet: Mapped[int]
     in_game: Mapped[bool] = mapped_column(default=False)
