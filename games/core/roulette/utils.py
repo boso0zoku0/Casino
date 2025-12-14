@@ -65,19 +65,14 @@ async def generate_tickets_roulette(
     session: AsyncSession = Depends(db_helper.session_dependency),
 ):
 
-    stmt = select(
-        Playmate.id, Playmate.username, func.sum(Playmate.bet).label("bet")
-    ).group_by(Playmate.id)
+    stmt = select(Playmate.username, Playmate.bet)
     execute_stmt = await session.execute(stmt)
     data_playmates = execute_stmt.fetchall()
     sum_bets = sum([user.bet for user in data_playmates])
-    print(f"sum_bets: {sum_bets}")
 
     win = await winner_choice(sum_bets)
 
-    stmt = select(Playmate.username, func.sum(Playmate.bet).label("bet")).group_by(
-        Playmate.username
-    )
+    stmt = select(Playmate.username, Playmate.bet)
     res = await session.execute(stmt)
     users_bets = res.all()
 
@@ -112,11 +107,12 @@ async def generate_tickets_roulette(
             )
 
             other_players = users_bets[:]
-            all_players = []
+            all_players_debug = []
 
             for user in other_players:
-                if user[0] not in all_players:
-                    all_players.append(user)
+                if user[0] not in all_players_debug:
+                    all_players_debug.append(user)
+            all_players = aggregate_tuples(all_players_debug)
 
             await session.execute(delete(Playmate))
             await session.commit()
@@ -130,17 +126,19 @@ async def generate_tickets_roulette(
                     "Ticket win": win,
                     "All bets": sum_bets,
                     "All Players": str(all_players),
+                    "All players debug": str(all_players_debug),
                 },
             )
 
     await session.commit()
 
-    # except IndexError:
-    #
-    #     return "Wait for players to connect to your room"
 
+def aggregate_tuples(data: list) -> list:
+    result_dict = {}
+    for key, value in data:
+        if key not in result_dict:
+            result_dict[key] = value
+        else:
+            result_dict[key] += value
 
-# на данный момент подозрение что победитель рассчитывается наоборот. в ставке где первый поставил 500 и второй 300
-# выигрышный билет 200 это билет второго участника(тоесть с конца). правильно будет победителем выбрать первого т.к его 500 билетов первые
-
-#
+    return list(result_dict.items())

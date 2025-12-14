@@ -34,16 +34,18 @@ router = APIRouter(prefix="/roulette", tags=["Roulette"])
 async def game_join(
     request: Request,
     bet: int,
-    # background_task: BackgroundTasks,
+    background_task: BackgroundTasks,
     session: AsyncSession = Depends(db_helper.session_dependency),
 ):
 
-    task = await get_cookies_create_playmate(
-        request=request,
-        bet=bet,
-        session=session,
+    # task = await get_cookies_create_playmate(
+    #     request=request,
+    #     bet=bet,
+    #     session=session,
+    # )
+    background_task.add_task(
+        get_cookies_create_playmate, request=request, session=session, bet=bet
     )
-    # background_task.add_task(task)
     return "You have joined the game"
 
 
