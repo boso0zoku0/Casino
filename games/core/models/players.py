@@ -1,4 +1,4 @@
-from sqlalchemy import Float, String, ForeignKey
+from sqlalchemy import Float, String, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from core.models.base import Base
 
@@ -15,5 +15,6 @@ class Players(Base):
     cookies: Mapped[str] = mapped_column(nullable=True)
     access_token: Mapped[str] = mapped_column(nullable=True)
     created_at: Mapped[TIMESTAMP] = mapped_column(
-        TIMESTAMP(timezone=True), nullable=True
+        TIMESTAMP(timezone=True),
+        nullable=False,
     )

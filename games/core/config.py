@@ -42,7 +42,7 @@ class AccessToken(BaseModel):
 
 class Setting(BaseSettings):
     api_v1_prefix: str = "/api/v1"
-    db_url: str = "postgresql+asyncpg://postgres:matvei225CC@:5432/casino"
+    db_url: str = "postgresql+asyncpg://postgres:matvei225CC@localhost:5432/casino"
     db_echo: bool = True
     # access_token: AccessToken = AccessToken()
     logging: LoggingConfig = LoggingConfig()

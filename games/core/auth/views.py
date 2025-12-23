@@ -30,7 +30,7 @@ async def primary_entry(
         payload = player.model_dump()
         access_token = helper_jwt.encode_jwt(payload=payload)
 
-        response.set_cookie(key="session_id", value=session_id, expires=1000)
+        response.set_cookie(key="session_id", value=session_id, expires=2000)
         await entry_user(session=session, player=player)
         await session.execute(
             update(Players)
@@ -64,7 +64,9 @@ async def entry(
     player_payload = player.model_dump()
     access_token = helper_jwt.encode_jwt(payload=player_payload)
 
-    response.set_cookie(key="session_id", value=session_id)
+    response.set_cookie(
+        key="session_id", value=session_id, samesite="none", secure=True
+    )
     await session.execute(
         update(Players)
         .where(Players.password == player.password)

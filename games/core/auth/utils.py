@@ -3,7 +3,8 @@ from typing import Annotated
 
 from fastapi import Form, HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordBearer
-from jwt import InvalidTokenError
+
+# from jwt import InvalidTokenError
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -48,19 +49,19 @@ async def validate_auth_user(
     return player
 
 
-async def get_current_token_payload(
-    token: str = Depends(oauth2),
-) -> dict:
-    try:
-        payload = helper_jwt.decode_jwt(
-            token=token,
-        )
-    except InvalidTokenError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"invalid token error",
-        )
-    return payload
+# async def get_current_token_payload(
+#     token: str = Depends(oauth2),
+# ) -> dict:
+#     try:
+#         payload = helper_jwt.decode_jwt(
+#             token=token,
+#         )
+#     except InvalidTokenError as e:
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail=f"invalid token error",
+#         )
+#     return payload
 
 
 def generate_user_token() -> str:

@@ -1,14 +1,9 @@
 import datetime
-from datetime import timedelta, time, datetime
-from time import timezone
+from datetime import timedelta, datetime
 
 import bcrypt
 import jwt
-from pydantic import BaseModel
-from sqlalchemy.util import await_only
-
 from core.config import settings
-from core.models import Players
 
 
 class AuthJWT:
@@ -48,6 +43,7 @@ class AuthJWT:
         pwd_bytes = password.encode("utf-8")
         return bcrypt.hashpw(pwd_bytes, salt)
 
+    @staticmethod
     def validate_password(
         password: str,
         hashed_password: bytes,

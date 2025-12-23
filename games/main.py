@@ -8,8 +8,13 @@ from core.auth.views import router as auth_router
 from core.config import settings
 from core.roulette.views import router as roulette_router
 
+from payments import router as payment_router
+
+
 origins = ["*"]
 app = FastAPI()
+
+app.include_router(payment_router)
 app.include_router(auth_router)
 app.include_router(roulette_router)
 
@@ -17,7 +22,7 @@ origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins="http://localhost:5173",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

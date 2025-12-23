@@ -18,6 +18,10 @@ dependencies = [
     "bcrypt>=5.0.0",
     "pyopenssl>=25.3.0",
     "cryptography>=46.0.3",
+    "yookassa>=3.9.0",
+    "var-dump>=1.2",
+    "yookassa-payout>=2.7.0",
+    "yoomoney>=0.1.2",
 ]
 
 [dependency-groups]

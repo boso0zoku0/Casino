@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict, EmailStr
 
 
@@ -12,6 +14,7 @@ class PlayersGet(BaseModel):
     years_active: int | None = 0
     cookies: str | None = None
     access_token: str | None = None
+    created_at: datetime
 
     def __str__(self):
         return f"Player(id={self.id}, username={self.username}, password='{self.password}', balance='{self.balance}' email='{self.email}')"

@@ -1,0 +1,40 @@
+#
+#services:
+#  fastapi:
+#    build: ./nginx/nginx.conf
+#    ports:
+#      - "8000:8000"
+#    # Или используйте образ, если есть
+#    # image: myfastapi:latest
+#
+#  nginx:
+#    image: nginx:alpine
+#    volumes:
+#      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+#    ports:
+#      - "80:80"
+#    depends_on:
+#      - fastapi
+
+services:
+  fastapi:
+    build: .
+    container_name: fastapi
+    ports:
+      - '8001:8000'
+    restart: "no"
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - fastapi
+
+  react:
+    build: .
+    container_name: react
+    ports:
+      - '5174:5173'
