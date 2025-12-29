@@ -13,11 +13,12 @@ from core.roulette.utils import (
 )
 from core.models import Players, db_helper
 from core.schemas import PlayersPost, PlayersGet
+from core.schemas.players import PlayersLogin
 
 router = APIRouter(prefix="/auth", tags=["AuthJWT"])
 
 
-@router.post("/registrations/")
+@router.post("/registrations/", status_code=status.HTTP_201_CREATED)
 async def primary_entry(
     response: Response,
     player: PlayersPost,
@@ -50,10 +51,10 @@ async def primary_entry(
         )
 
 
-@router.post("/login/")
+@router.post("/login/", status_code=status.HTTP_200_OK)
 async def entry(
     response: Response,
-    player: PlayersPost,
+    player: PlayersLogin,
     session_id=Depends(generate_user_token),
     session: AsyncSession = Depends(db_helper.session_dependency),
 ):
@@ -79,7 +80,7 @@ async def entry(
     return f"Authentication was successful: {player.username}"
 
 
-@router.post("/users-browsing/")
+@router.post("/users-browsing/", status_code=status.HTTP_200_OK)
 async def users_browsing(
     players_or_playmate: bool,
     session: AsyncSession = Depends(db_helper.session_dependency),

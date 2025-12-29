@@ -18,3 +18,4 @@ class Players(Base):
         TIMESTAMP(timezone=True),
         nullable=False,
     )
+    photo: Mapped[str] = mapped_column(nullable=True, unique=False)

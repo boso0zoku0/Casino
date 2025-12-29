@@ -10,6 +10,7 @@ from alembic import context
 
 from core.models.players import Players
 from core.models.playmate import Playmate
+from core.models.roulette import Roulette
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

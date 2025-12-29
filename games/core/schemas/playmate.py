@@ -6,6 +6,7 @@ class PlaymateGet(BaseModel):
     id: int
     username: str
     bet: int
+    photo: str | None = None
 
     def __str__(self):
         return f"Player(id={self.id}, username='{self.username}', bet='{self.bet}')"
@@ -15,6 +16,7 @@ class PlaymatePost(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     username: str
     bet: int
+    photo: str | None = None
 
     def __str__(self):
         return f"Player(id={self.id}, username='{self.username}', bet='{self.bet}')"

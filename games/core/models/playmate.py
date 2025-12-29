@@ -19,3 +19,4 @@ class Playmate(Base):
     created_at: Mapped[TIMESTAMP] = mapped_column(
         TIMESTAMP(timezone=True), nullable=True
     )
+    photo: Mapped[str] = mapped_column(nullable=True, unique=False)

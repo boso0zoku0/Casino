@@ -1,15 +1,18 @@
 import logging
 import random
+from datetime import datetime, timezone
 
 from fastapi import Depends, HTTPException
-from sqlalchemy import select, insert, update, delete
+from sqlalchemy import select, insert, update, delete, desc
+from sqlalchemy.engine import row
 from sqlalchemy.sql import func
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from starlette.requests import Request
-
+from starlette.responses import JSONResponse
 from core.models import db_helper, Players
 from core.models.playmate import Playmate
+from core.models.roulette import Roulette, PhaseStatus
 
 log = logging.getLogger(__name__)
 
@@ -50,8 +53,13 @@ async def get_cookies_create_playmate(
         password=str(players.password),
         bet=bet,
         cookies=cookies_get,
+        photo=str(players.photo),
     )
-    log.info(f"Joined playmate - %s; bet - %s", new_playmate.username, new_playmate.bet)
+    log.info(
+        f"Joined playmate - %s; bet - %s;",
+        new_playmate.username,
+        new_playmate.bet,
+    )
     session.add(new_playmate)
     await session.commit()
 
@@ -61,7 +69,6 @@ async def winner_choice(tickets: int):
 
 
 async def generate_tickets_roulette(
-    request: Request,
     session: AsyncSession = Depends(db_helper.session_dependency),
 ):
 
@@ -83,10 +90,8 @@ async def generate_tickets_roulette(
 
     for playmate in users_bets:
         cumulative_bet += playmate[1]
-
         if cumulative_bet >= win:
             win_user = playmate[0]
-
             stmt = (
                 select(func.sum(Playmate.bet).label("bet"), Playmate.username)
                 .where(Playmate.username == win_user)
@@ -142,3 +147,132 @@ def aggregate_tuples(data: list) -> list:
             result_dict[key] += value
 
     return list(result_dict.items())
+
+
+async def my_details(
+    request: Request, session: AsyncSession = Depends(db_helper.session_dependency)
+):
+    get_cookies = request.cookies.get("session_id")
+    if get_cookies:
+        stmt = select(Players).where(Players.cookies == get_cookies)
+        execute_stmt = await session.execute(stmt)
+        user = execute_stmt.scalars().all()
+        return user
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED, detail="Not logged in"
+    )
+
+
+async def fetch_playmate(
+    session: AsyncSession = Depends(db_helper.session_dependency),
+):
+    stmt = select(Playmate.username, Playmate.bet, Playmate.photo)
+    execute_stmt = await session.execute(stmt)
+    rows = execute_stmt.fetchall()
+    players = [{"username": item[0], "bet": item[1], "photo": item[2]} for item in rows]
+    return players
+
+
+async def add_random_playmates(
+    session: AsyncSession = Depends(db_helper.session_dependency),
+):
+    stmt = insert(Playmate).values(
+        [
+            {
+                "username": "debug1",
+                "password": "debug1",
+                "bet": 341,
+                "cookies": None,
+                "photo": "https://media.kasperskydaily.com/wp-content/uploads/sites/90/2016/05/06042126/joliepitt-1-1024x672.gif",
+            },
+            {
+                "username": "debug2",
+                "password": "debug2",
+                "bet": 123,
+                "cookies": None,
+                "photo": None,
+            },
+            {
+                "username": "debug3",
+                "password": "debug3",
+                "bet": 5555,
+                "cookies": None,
+                "photo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR50nslVVIO5ytPj8m68UcJKWeL6sP78vNp6Q&s",
+            },
+            {
+                "username": "debug4",
+                "password": "debug4",
+                "bet": 7676,
+                "cookies": None,
+                "photo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSVOKyGYskD1iNwq65qbNkkRYQ27_saVYG1Lw&s",
+            },
+        ]
+    )
+    await session.execute(stmt)
+    # session.add(stmt)
+    await session.commit()
+    return "ok"
+
+
+async def game_phase_control(
+    session: AsyncSession = Depends(db_helper.session_dependency),
+):
+    stmt = select(Roulette).order_by(Roulette.created_at.desc()).limit(1)
+    result = await session.execute(stmt)
+    current_round = result.scalars().first()
+    time_now = datetime.now(tz=timezone.utc)
+    print(
+        f"round_start_time: {current_round.round_start_time}, tzinfo: {current_round.round_start_time.tzinfo}"
+    )
+
+    if not current_round:
+        init_round = Roulette(
+            phase=PhaseStatus.BETTING,
+            phase_duration=3,
+            round_start_time=time_now,
+        )
+        session.add(init_round)
+        session.expire(init_round)
+        await session.commit()
+
+        current_round = init_round
+
+    elapsed_seconds = int((time_now - current_round.round_start_time).total_seconds())
+    remaining_time = max(0, current_round.phase_duration - elapsed_seconds)
+
+    if remaining_time <= 0:
+        if current_round.phase == PhaseStatus.BETTING:
+            current_round.phase = PhaseStatus.SPINNING
+            current_round.round_start_time = time_now
+            current_round.phase_duration = 3
+            await session.commit()
+        elif current_round.phase == PhaseStatus.SPINNING:
+            current_round.phase = PhaseStatus.RESULT
+            current_round.round_start_time = time_now
+            current_round.phase_duration = 5
+            await session.commit()
+        elif current_round.phase == PhaseStatus.RESULT:
+            current_round.phase = PhaseStatus.BETTING
+            current_round.round_start_time = time_now
+            current_round.phase_duration = 5
+            await session.commit()
+
+    return {
+        "created_at": current_round.created_at,
+        "round_start_time": current_round.round_start_time,
+        "phase": current_round.phase,
+        "phase_duration": current_round.phase_duration,
+    }
+
+
+# stmt = insert(Roulette).values(phase=PhaseStatus.BETTING)
+# await session.execute(stmt)
+# await session.commit()
+# sleep(2)
+# stmt = insert(Roulette).values(phase=PhaseStatus.SPINNING)
+# await session.execute(stmt)
+# await session.commit()
+# sleep(2)
+# stmt = insert(Roulette).values(phase=PhaseStatus.RESULT)
+# await session.execute(stmt)
+# await session.commit()

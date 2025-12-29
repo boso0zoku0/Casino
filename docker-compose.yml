@@ -1,11 +1,12 @@
+
 #
 #services:
 #  fastapi:
-#    build: ./nginx/nginx.conf
+#    build: .
+#    container_name: fastapi
 #    ports:
-#      - "8000:8000"
-#    # Или используйте образ, если есть
-#    # image: myfastapi:latest
+#      - '8000:8000'
+#    restart: "no"
 #
 #  nginx:
 #    image: nginx:alpine
@@ -15,26 +16,58 @@
 #      - "80:80"
 #    depends_on:
 #      - fastapi
+#
+#
+#  postgres:
+#    image: postgres:17-alpine
+#    container_name: casino-postgres
+#    env_file:
+#      - .env.template
+#    ports:
+#      - "5432:5432"
+
+#  react:
+#    build: .
+#    container_name: react
+#    ports:
+#      - '5174:5173'
+
 
 services:
-  fastapi:
-    build: .
-    container_name: fastapi
+  app:
+    build:
+      dockerfile: games/Dockerfile
+      context: ./
+    environment:
+      APP_CONFIG__DB__URL: postgresql+asyncpg://postgres:matvei225CC@pg:5432/shop
+      APP_CONFIG__DB__ECHO: 0
     ports:
-      - '8001:8000'
-    restart: "no"
+      - "8000:8000"
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./games
+          target: /app
+        - action: rebuild
+          path: ./uv.lock
 
-  nginx:
-    image: nginx:alpine
+  pg:
+    image: postgres:17-alpine
+    env_file:
+      - .env.template
+    ports:
+      - "5432:5432"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-    ports:
-      - "80:80"
-    depends_on:
-      - fastapi
+      - pgdata:/var/lib/postgresql/data
 
-  react:
-    build: .
-    container_name: react
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: matveygrishayev@mail.ru
+      PGADMIN_DEFAULT_PASSWORD: matvei225CC
     ports:
-      - '5174:5173'
+      - "5000:5000"  # Порт для доступа к pgAdmin
+
+
+volumes:
+  pgdata:

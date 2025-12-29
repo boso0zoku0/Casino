@@ -15,9 +15,10 @@ class PlayersGet(BaseModel):
     cookies: str | None = None
     access_token: str | None = None
     created_at: datetime
+    photo: str | None = None
 
     def __str__(self):
-        return f"Player(id={self.id}, username={self.username}, password='{self.password}', balance='{self.balance}' email='{self.email}')"
+        return f"Player(id={self.id}, username={self.username}, password='{self.password}', balance='{self.balance}' email='{self.email}' photo: '{self.photo}')"
 
 
 class PlayersPost(BaseModel):
@@ -25,6 +26,12 @@ class PlayersPost(BaseModel):
     username: str
     password: str
     email: EmailStr | None = None
+    photo: str | None = None
 
     def __str__(self):
-        return f"Player(username={self.username}, password='{self.password}', balance='{self.balance}' email='{self.email}')"
+        return f"Player(username={self.username}, password='{self.password}', balance='{self.balance}' email='{self.email}' photo: '{self.photo}')"
+
+
+class PlayersLogin(BaseModel):
+    username: str
+    password: str

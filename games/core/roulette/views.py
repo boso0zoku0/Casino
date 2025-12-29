@@ -1,31 +1,35 @@
+from typing import Annotated, List
+
 from fastapi import (
     APIRouter,
-    Response,
     Request,
     Depends,
     BackgroundTasks,
     HTTPException,
     status,
+    Query,
+    Path,
+    Body,
+    Cookie,
+    Request,
+    Response,
+    Header,
+    Form,
 )
-from sqlalchemy import select
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
-from core.models import db_helper, Players
-from core.roulette.utils import get_cookies_create_playmate, generate_tickets_roulette
+from starlette.websockets import WebSocketDisconnect, WebSocket
 
-
-async def my_details(
-    request: Request, session: AsyncSession = Depends(db_helper.session_dependency)
-):
-    get_cookies = request.cookies.get("session_id")
-    if get_cookies:
-        stmt = select(Players).where(Players.cookies == get_cookies)
-        execute_stmt = await session.execute(stmt)
-        user = execute_stmt.scalars().all()
-        return user
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED, detail="Not logged in"
-    )
-
+from core.models import db_helper
+from core.models.roulette import PhaseStatus
+from core.roulette.utils import (
+    get_cookies_create_playmate,
+    generate_tickets_roulette,
+    my_details,
+    fetch_playmate,
+    add_random_playmates,
+    game_phase_control,
+)
 
 router = APIRouter(prefix="/roulette", tags=["Roulette"])
 
@@ -49,24 +53,32 @@ async def game_join(
     return "You have joined the game"
 
 
-@router.post("/winner")
+@router.get("/winner")
 async def take_winner(
-    request: Request,
     session: AsyncSession = Depends(db_helper.session_dependency),
 ):
-    return await generate_tickets_roulette(session=session, request=request)
+    return await generate_tickets_roulette(session=session)
 
 
 @router.get("/about/me")
-async def my_details(
+async def details(
     request: Request, session: AsyncSession = Depends(db_helper.session_dependency)
 ):
-    get_cookies = request.cookies.get("session_id")
-    if get_cookies:
-        stmt = select(Players).where(Players.cookies == get_cookies)
-        execute_stmt = await session.execute(stmt)
-        user = execute_stmt.scalars().first()
-        return user
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED, detail="Not logged in"
-    )
+    return await my_details(session=session, request=request)
+
+
+@router.get("/fetch/phase-control")
+async def phase_control(session: AsyncSession = Depends(db_helper.session_dependency)):
+    return await game_phase_control(session=session)
+
+
+@router.get("/fetch/")
+async def fetch_game(session: AsyncSession = Depends(db_helper.session_dependency)):
+    return await fetch_playmate(session=session)
+
+
+@router.post("/debug/create/playmates")
+async def debug_add_playmates(
+    session: AsyncSession = Depends(db_helper.session_dependency),
+):
+    return await add_random_playmates(session=session)
